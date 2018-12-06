@@ -141,7 +141,7 @@ frappe.ui.form.on('Patient Appointment', {
 				if(slot.status == "Scheduled" || slot.status == "Open" || slot.status == "Closed"){
 					$wrapper
 						.find(`button[data-name="${slot.appointment_time}"]`)
-						.css('background-color','gray')
+						.css('background-color','red')
 						
 				}
 			});
