@@ -19,9 +19,9 @@ class PatientAppointment(Document):
 		appointment_date = getdate(self.appointment_date)
 
 		# If appointment created for today set as open
-		if today == appointment_date:
-			frappe.db.set_value("Patient Appointment", self.name, "status", "Open")
-			self.reload()
+		#if today == appointment_date:
+		#	frappe.db.set_value("Patient Appointment", self.name, "status", "Sc")
+		#	self.reload()
 
 	#def after_insert(self):
 	#	# Check fee validity exists
@@ -97,7 +97,7 @@ def get_availability_data(date, physician):
 			if weekday == t.day:
 				from_time=t.from_time
 				to_time=t.to_time
-				while from_time<=to_time:
+				while from_time<to_time:
 					time={}
 					time["from_time"]=from_time
 					time["to_time"]=from_time+datetime.timedelta(minutes = int(time_per_appointment))

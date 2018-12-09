@@ -6,8 +6,8 @@ def get_data():
 	return [
 		{
 			"module_name": "Clinic",
-			"color": "pink",
-			"icon": "octicon octicon-file-directory",
+			"color": "black",
+			"icon": "octicon octicon-star",
 			"type": "module",
 			"label": _("Clinic")
 		}
