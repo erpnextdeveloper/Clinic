@@ -4,11 +4,11 @@ from . import __version__ as app_version
 
 app_name = "clinic"
 app_title = "Clinic"
-app_publisher = "Clinic"
-app_description = "Clinic Management App"
-app_icon = "octicon octicon-file-directory"
-app_color = "grey"
-app_email = "clinic@gmail.com"
+app_publisher = "GreyCube Technologies"
+app_description = "Health Clinic Administration"
+app_icon = "octicon octicon-star"
+app_color = "pink"
+app_email = "sales@greycube.in"
 app_license = "MIT"
 
 # Includes in <head>

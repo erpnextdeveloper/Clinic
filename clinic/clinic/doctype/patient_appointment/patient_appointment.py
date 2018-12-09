@@ -88,13 +88,21 @@ def get_availability_data(date, physician):
 	if physician_schedule_name:
 		physician_schedule = frappe.get_doc("Physician Schedule", physician_schedule_name)
 		time_per_appointment = frappe.db.get_value("Doctor", physician, "time_per_appointment")
+		#frappe.msgprint(json.dumps(time_per_appointment))
 	else:
 		frappe.throw(_("Dr {0} does not have a Physician Schedule. Add it in Physician master".format(physician)))
 
 	if physician_schedule:
 		for t in physician_schedule.time_slots:
 			if weekday == t.day:
-				available_slots.append(t)
+				from_time=t.from_time
+				to_time=t.to_time
+				while from_time<=to_time:
+					time={}
+					time["from_time"]=from_time
+					time["to_time"]=from_time+datetime.timedelta(minutes = int(time_per_appointment))
+					available_slots.append(time)
+					from_time=from_time+datetime.timedelta(minutes = int(time_per_appointment))
 
 	# `time_per_appointment` should never be None since validation in `Patient` is supposed to prevent
 	# that. However, it isn't impossible so we'll prepare for that.
