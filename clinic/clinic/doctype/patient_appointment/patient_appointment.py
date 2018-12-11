@@ -92,6 +92,8 @@ def get_availability_data(date, physician):
 	else:
 		frappe.throw(_("Dr {0} does not have a Physician Schedule. Add it in Physician master".format(physician)))
 
+	#custome:inside below block i did change divide block (from_time to to_time and each divide time per appointment)
+
 	if physician_schedule:
 		for t in physician_schedule.time_slots:
 			if weekday == t.day:

@@ -22,17 +22,15 @@ import logging
 from operator import itemgetter 
 
 
+#custom:This function use to decide what is appointment status
+
 @frappe.whitelist()
 def checkAvailability(self,method):
-	#frappe.msgprint("In Call")
-	#self=frappe.get_doc("Patient Appointment",name)
 	checkAppointment=frappe.get_all("Patient Appointment",filters={'appointment_date':self.appointment_date,'physician':self.physician,'appointment_time':self.appointment_time,'status':'Scheduled'},fields=["name"])
 	if len(checkAppointment)>1:
-		frappe.msgprint("Old")
 		frappe.db.set_value("Patient Appointment", self.name, "status", "Waiting")
 		return self.name
 	else:
-		frappe.msgprint("New")
 		frappe.db.set_value("Patient Appointment", self.name, "status", "Scheduled")
 		return self.name
 	

@@ -137,6 +137,8 @@ frappe.ui.form.on('Patient Appointment', {
 				.html(slot_html);
 
 			// disable buttons for which appointments are booked
+
+			//custom:change button color and tooltip using css attribute
 			data.appointments.map(slot => {
 				if(slot.status == "Scheduled" || slot.status == "Open" || slot.status == "Closed"){
 					$wrapper
@@ -263,11 +265,11 @@ frappe.ui.form.on("Patient Appointment", "patient", function(frm) {
 		});
 	}
 });
+
+//custome:this is use to reload doc after update status
 frappe.ui.form.on("Patient Appointment", "status", function(frm) {
 	frm.refresh_field('status');
-	console.log('call');
 	setTimeout(function(){
-	console.log(cur_frm);
 	cur_frm.reload_doc();
 
 	},2000)
