@@ -11,6 +11,8 @@ app_color = "pink"
 app_email = "sales@greycube.in"
 app_license = "MIT"
 
+fixtures=["Custom Script"]
+
 # Includes in <head>
 # ------------------
 
