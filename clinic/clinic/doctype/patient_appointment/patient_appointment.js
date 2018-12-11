@@ -126,7 +126,7 @@ frappe.ui.form.on('Patient Appointment', {
 			var slot_html = data.available_slots.map(slot => {
 				return `<button class="btn btn-default"
 					data-name=${slot.from_time}
-					style="margin: 0 10px 10px 0; width: 72px">
+					style="margin: 0 10px 10px 0; width: 72px" title="Available">
 					${slot.from_time.substring(0, slot.from_time.length - 3)}
 				</button>`;
 			}).join("");
@@ -141,6 +141,7 @@ frappe.ui.form.on('Patient Appointment', {
 				if(slot.status == "Scheduled" || slot.status == "Open" || slot.status == "Closed"){
 					$wrapper
 						.find(`button[data-name="${slot.appointment_time}"]`)
+						.attr('title','Booked')
 						.css('background-color','red')
 						
 				}
