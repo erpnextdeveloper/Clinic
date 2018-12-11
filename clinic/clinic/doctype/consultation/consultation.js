@@ -16,7 +16,7 @@ frappe.ui.form.on('Consultation', {
 		];
 	},
 	onload: function(frm){
-		if(frm.doc.patient){
+		/*if(frm.doc.patient){
 			frappe.call({
 				"method": "erpnext.healthcare.doctype.patient.patient.get_patient_detail",
 				args: {
@@ -26,7 +26,7 @@ frappe.ui.form.on('Consultation', {
 					show_details(data.message);
 				}
 			});
-		}
+		}*/
 	},
 	refresh: function(frm) {
 		refresh_field('drug_prescription');
@@ -224,6 +224,37 @@ frappe.ui.form.on("Consultation", "physician", function(frm) {
 	}
 });
 
+frappe.ui.form.on("Consultation Treatment", "treatment", function(frm,cdt,cdn) {
+	frappe.model.set_value(cdt,cdn,"qty","1");
+	
+});
+
+frappe.ui.form.on("Consultation", "onload", function(frm,cdt,cdn) {
+	console.log(frm.doc.__islocal)
+	if(frm.doc.__islocal){
+		if(frm.doc.appointment){
+
+			frappe.call({
+				method: 'frappe.client.get_value',
+				args: {
+					doctype: 'Patient Appointment',
+					filters: { name:frm.doc.appointment
+					},
+				   fieldname:['client','patient_name','doctor_name']
+				},
+				callback: function(res) {
+					frappe.model.set_value(cdt, cdn, "patient", res.message.client);
+					frappe.model.set_value(cdt, cdn, "patient_name", res.message.patient_name);
+					frappe.model.set_value(cdt, cdn, "doctor_name", res.message.doctor_name);
+					
+				}
+	
+			})
+		}
+	}
+});
+
+
 frappe.ui.form.on("Consultation", "symptoms_select", function(frm) {
 	if(frm.doc.symptoms_select){
 		var symptoms = null;
@@ -247,7 +278,7 @@ frappe.ui.form.on("Consultation", "diagnosis_select", function(frm) {
 	}
 });
 
-frappe.ui.form.on("Consultation", "patient", function(frm) {
+/*frappe.ui.form.on("Consultation", "patient", function(frm) {
 	if(frm.doc.patient){
 		frappe.call({
 			"method": "erpnext.healthcare.doctype.patient.patient.get_patient_detail",
@@ -267,6 +298,7 @@ frappe.ui.form.on("Consultation", "patient", function(frm) {
 	}
 });
 
+*/
 frappe.ui.form.on("Drug Prescription", {
 	drug_code:  function(frm, cdt, cdn) {
 		var child = locals[cdt][cdn];

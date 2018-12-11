@@ -91,6 +91,9 @@ fixtures=["Custom Script"]
 doc_events = {
 	"Patient Appointment":{
 		"after_insert":"clinic.api.checkAvailability"
+	},
+	"Consultation":{
+		"after_submit":"clinic.api.makeTreatment"
 	}
 }
 

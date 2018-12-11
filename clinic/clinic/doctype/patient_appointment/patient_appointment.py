@@ -249,10 +249,10 @@ def create_consultation(appointment):
 	appointment = frappe.get_doc("Patient Appointment", appointment)
 	consultation = frappe.new_doc("Consultation")
 	consultation.appointment = appointment.name
-	consultation.client = appointment.client
+	consultation.patient = appointment.client
+	consultation.patient_name=appointment.patient_name
 	consultation.physician = appointment.physician
-	consultation.visit_department = appointment.department
-	consultation.patient_sex = appointment.patient_sex
+	consultation.doctor_name=appointment.doctor_name	
 	consultation.consultation_date = appointment.appointment_date
 	if appointment.sales_invoice:
 		consultation.invoice = appointment.sales_invoice

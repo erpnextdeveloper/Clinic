@@ -9,24 +9,36 @@ from frappe.model.document import Document
 from frappe.utils import getdate, cstr
 import json
 from erpnext.healthcare.doctype.healthcare_settings.healthcare_settings import get_receivable_account, get_income_account
+import time
+from datetime import datetime
+from frappe.utils import now_datetime
 
 class Consultation(Document):
-	def on_update(self):
-		if(self.appointment):
-			frappe.db.set_value("Patient Appointment", self.appointment, "status", "Closed")
-		update_consultation_to_medical_record(self)
-
 	def after_insert(self):
-		insert_consultation_to_medical_record(self)
+		frappe.db.set_value("Patient Appointment", self.appointment, "status", "Closed")
 
 	def on_submit(self):
-		if not self.diagnosis or not self.symptoms:
-			frappe.throw("Diagnosis and Complaints cannot be left blank")
-
-	def on_cancel(self):
-		if(self.appointment):
-			frappe.db.set_value("Patient Appointment", self.appointment, "status", "Open")
-		delete_medical_record(self)
+		frappe.msgprint("call")
+		if len(self.treatment)>0:
+			for item in self.treatment:
+				doctor_name=frappe.db.get_value("Doctor",item.assigned_to,"first_name")
+				doc=frappe.get_doc(dict(
+					doctype="Client Treatment",
+					appointment=self.appointment,
+					client=self.patient,
+					doctor=item.assigned_to,
+					clinic_name=item.clinic_name,
+					client_name=self.patient_name,
+					doctor_name=doctor_name if not doctor_name==None else '',
+					treatment=item.treatment,
+					qty=item.qty,
+					status="Pending",
+					medical_assitant=self.physician,
+					date_time=now_datetime()
+				)).insert()
+			frappe.db.set_value("Patient Appointment", self.appointment, "status", "Under Treatment")
+		else:
+			frappe.db.set_value("Patient Appointment", self.appointment, "status", "To Bill")
 
 def set_sales_invoice_fields(company, patient):
 	sales_invoice = frappe.new_doc("Sales Invoice")

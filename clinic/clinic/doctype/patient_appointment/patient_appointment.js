@@ -178,6 +178,7 @@ var btn_create_consultation = function(frm){
 		args: {appointment: doc.name},
 		callback: function(data){
 			if(!data.exc){
+				
 				var doclist = frappe.model.sync(data.message);
 				frappe.set_route("Form", doclist[0].doctype, doclist[0].name);
 			}
