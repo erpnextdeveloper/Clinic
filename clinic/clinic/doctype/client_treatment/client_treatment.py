@@ -7,4 +7,8 @@ import frappe
 from frappe.model.document import Document
 
 class ClientTreatment(Document):
-	pass
+	def after_insert(self):
+		frappe.db.set_value("Client Treatment",self.name,"status","Pending")
+
+	def on_submit(self):
+		frappe.db.set_value("Client Treatment",self.name,"status","Completed")

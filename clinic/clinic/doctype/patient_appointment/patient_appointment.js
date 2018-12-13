@@ -30,9 +30,7 @@ frappe.ui.form.on('Patient Appointment', {
 				btn_create_consultation(frm);
 			},"Create");
 
-			frm.add_custom_button(__('Vital Signs'), function() {
-				btn_create_vital_signs(frm);
-			},"Create");
+		
 		}
 		if(frm.doc.status == "Scheduled" && !frm.doc.__islocal){
 			frm.add_custom_button(__('Cancel'), function() {
@@ -43,9 +41,6 @@ frappe.ui.form.on('Patient Appointment', {
 				btn_create_consultation(frm);
 			},"Create");
 
-			frm.add_custom_button(__('Vital Signs'), function() {
-				btn_create_vital_signs(frm);
-			},"Create");
 		}
 		if(frm.doc.status == "Pending"){
 			frm.add_custom_button(__('Set Open'), function() {
@@ -219,8 +214,8 @@ var btn_invoice_consultation = function(frm){
 	var doc = frm.doc;
 	frappe.call({
 		method:
-		"erpnext.healthcare.doctype.patient_appointment.patient_appointment.create_invoice",
-		args: {company: doc.company, physician:doc.physician, patient: doc.patient,
+		"clinic.clinic.doctype.patient_appointment.patient_appointment.create_invoice",
+		args: {company: doc.company, physician:doc.physician, patient: doc.client,
 			appointment_id: doc.name, appointment_date:doc.appointment_date },
 		callback: function(data){
 			if(!data.exc){

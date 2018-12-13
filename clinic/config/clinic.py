@@ -25,6 +25,11 @@ def get_data():
 					"type": "doctype",
 					"name": "Consultation",
 					"description": _("Consultation")
+				},
+				{
+					"type": "doctype",
+					"name": "Client Treatment",
+					"description": _("Client Treatment")
 				}
 
 			]

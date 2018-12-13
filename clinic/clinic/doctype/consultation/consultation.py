@@ -18,7 +18,6 @@ class Consultation(Document):
 		frappe.db.set_value("Patient Appointment", self.appointment, "status", "Closed")
 
 	def on_submit(self):
-		frappe.msgprint("call")
 		if len(self.treatment)>0:
 			for item in self.treatment:
 				doctor_name=frappe.db.get_value("Doctor",item.assigned_to,"first_name")
@@ -34,7 +33,9 @@ class Consultation(Document):
 					qty=item.qty,
 					status="Pending",
 					medical_assitant=self.physician,
-					date_time=now_datetime()
+					date_time=now_datetime(),
+					consulatation=self.name,
+					consulatation_treatment=item.name
 				)).insert()
 			frappe.db.set_value("Patient Appointment", self.appointment, "status", "Under Treatment")
 		else:

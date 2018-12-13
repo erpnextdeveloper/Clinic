@@ -167,25 +167,74 @@ def confirm_sms(doc):
 def create_invoice(company, physician, patient, appointment_id, appointment_date):
 	if not appointment_id:
 		return False
-	sales_invoice = frappe.new_doc("Sales Invoice")
-	sales_invoice.customer = frappe.get_value("Patient", patient, "customer")
-	sales_invoice.appointment = appointment_id
-	sales_invoice.due_date = getdate()
-	sales_invoice.is_pos = '0'
-	sales_invoice.debit_to = get_receivable_account(company)
 
-	fee_validity = get_fee_validity(physician, patient, appointment_date)
-	create_invoice_items(appointment_id, physician, company, sales_invoice)
+	item_obj=getItemArray(company,physician,patient,appointment_id,appointment_date)
+	if len(item_obj)>0:
+		sales_invoice=frappe.get_doc(dict(
+			doctype="Sales Invoice",
+			customer=patient,
+			due_date=getdate(),
+			appointment=appointment_id,
+			items=item_obj
+		)).insert()
+		return sales_invoice.name
+	else:
+		return False	
 
-	sales_invoice.save(ignore_permissions=True)
-	frappe.db.sql("""update `tabPatient Appointment` set sales_invoice=%s where name=%s""", (sales_invoice.name, appointment_id))
-	frappe.db.set_value("Fee Validity", fee_validity.name, "ref_invoice", sales_invoice.name)
-	consultation = frappe.db.exists({
-			"doctype": "Consultation",
-			"appointment": appointment_id})
-	if consultation:
-		frappe.db.set_value("Consultation", consultation[0][0], "invoice", sales_invoice.name)
-	return sales_invoice.name
+
+@frappe.whitelist()
+def invoiceItem(name):
+	appointment_details=frappe.get_doc("Patient Appointment",name)
+	items=getItemArray(appointment_details.company,appointment_details.physician,appointment_details.client,name,appointment_details.appointment_date)
+	if len(items)>0:
+		return items
+	else:
+		return False		
+
+
+
+def getItemArray(company, physician, patient, appointment_id, appointment_date):
+	consultation_details=frappe.get_all("Consultation",filters={"docstatus":1,"patient":patient,"appointment":appointment_id,"physician":physician},fields=["name"])
+	items=[]
+	if consultation_details:
+		for treatment in consultation_details:
+			consultation_data=frappe.get_doc("Consultation",treatment.name)
+			if len(consultation_data.treatment)>0:
+				item_json={}
+				item_json["item_name"]="Consulting Charges"
+				item_json["description"]="Consulting Charges:  " + physician
+				item_json["qty"] = 1
+				item_json["uom"] = "Nos"
+				item_json["conversion_factor"] = 1
+				item_json["income_account"] = get_income_account(physician, company)
+				op_consulting_charge = frappe.db.get_value("Doctor", physician, "op_consulting_charge")
+				if op_consulting_charge:
+					item_json["rate"] = op_consulting_charge
+					item_json["amount"] = op_consulting_charge
+				items.append(item_json)
+				for treat_item in consultation_data.treatment:
+					item_json={}
+					treatment_data=frappe.get_all("Client Treatment",filters={"consulatation":treat_item.parent,"consulatation_treatment":treat_item.name,"status":"Completed"},fields=["treatment","qty"])
+					if len(treatment_data)>0:
+						item_json["item_code"]=treatment_data[0].treatment
+						item_json["qty"]=treatment_data[0].qty
+						items.append(item_json)	
+			else:
+				item_json={}
+				item_json["item_name"]="Consulting Charges"
+				item_json["description"]="Consulting Charges:  " + physician
+				item_json["qty"] = 1
+				item_json["uom"] = "Nos"
+				item_json["conversion_factor"] = 1
+				item_json["income_account"] = get_income_account(physician, company)
+				op_consulting_charge = frappe.db.get_value("Doctor", physician, "op_consulting_charge")
+				if op_consulting_charge:
+					item_json["rate"] = op_consulting_charge
+					item_json["amount"] = op_consulting_charge
+				items.append(item_json)
+
+	return items
+
 
 
 def get_fee_validity(physician, patient, date):
@@ -230,6 +279,20 @@ def create_fee_validity(physician, patient, date):
 
 
 def create_invoice_items(appointment_id, physician, company, invoice):
+	item_line = invoice.append("items")
+	item_line.item_name = "Consulting Charges"
+	item_line.description = "Consulting Charges:  " + physician
+	item_line.qty = 1
+	item_line.uom = "Nos"
+	item_line.conversion_factor = 1
+	item_line.income_account = get_income_account(physician, company)
+	op_consulting_charge = frappe.db.get_value("Doctor", physician, "op_consulting_charge")
+	if op_consulting_charge:
+		item_line.rate = op_consulting_charge
+		item_line.amount = op_consulting_charge
+	return invoice
+
+def create_invoice_items1(appointment_id, physician, company, invoice):
 	item_line = invoice.append("items")
 	item_line.item_name = "Consulting Charges"
 	item_line.description = "Consulting Charges:  " + physician

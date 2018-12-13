@@ -41,16 +41,49 @@ def checkAvailability(self,method):
 	try:
 		checkAppointment=frappe.get_all("Patient Appointment",filters={'appointment_date':self.appointment_date,'physician':self.physician,'appointment_time':self.appointment_time,'status':'Scheduled'},fields=["name"])
 		if len(checkAppointment)>1:
-			frappe.msgprint("Old")
 			frappe.db.set_value("Patient Appointment", self.name, "status", "Waiting")
 			return self.name
 		else:
-			frappe.msgprint("New")
 			frappe.db.set_value("Patient Appointment", self.name, "status", "Scheduled")
 			return self.name
 
 	except Exception as e:
 		return generateResponse("F",error=e)
+
+@frappe.whitelist()
+def changeStatus(self,method):
+	try:
+		if self.appointment:
+			frappe.db.set_value("Patient Appointment",self.appointment, "status", "Billed")
+
+	except Exception as e:
+		return generateResponse("F",error=e)
+
+
+'''
+@frappe.whitelist()
+def makeInvoice(appointment):
+	try:
+		appointment_data=frappe.get_doc("Patient Appointment",appointment)
+		items=[]
+		item_line={}
+		item_line["item_code"]="BP"
+		item_line["qty"]=1
+		items.append(item_line)
+		sales_invoice=frappe.get_doc(dict(
+			customer=appointment_data.client,
+			due_data=today(),
+			appointment=appointment,
+			items=items
+		)).insert()
+		return sales_invoice.name
+
+	except Exception as e:
+		return generateResponse("F",error=e)'''
+
+
+
+
 
 
 

@@ -94,6 +94,9 @@ doc_events = {
 	},
 	"Consultation":{
 		"after_submit":"clinic.api.makeTreatment"
+	},
+	"Sales Invoice":{
+		"on_submit":"clinic.api.changeStatus"
 	}
 }
 
