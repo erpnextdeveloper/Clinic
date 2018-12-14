@@ -39,7 +39,7 @@ def app_error_log(title,error):
 @frappe.whitelist()
 def checkAvailability(self,method):
 	try:
-		checkAppointment=frappe.get_all("Patient Appointment",filters={'appointment_date':self.appointment_date,'physician':self.physician,'appointment_time':self.appointment_time,'status':'Scheduled'},fields=["name"])
+		checkAppointment=frappe.get_all("Patient Appointment",filters=[["Patient Appointment","status","in",["Billed","To Bill","Under Treatment","Schedule"]],["Patient Appointment","appointment_date","=",self.appointment_date],["Patient Appointment","physician","=",self.physician],["Patient Appointment","appointment_time","=",self.appointment_time]],fields=["name"])
 		if len(checkAppointment)>1:
 			frappe.db.set_value("Patient Appointment", self.name, "status", "Waiting")
 			return self.name
@@ -80,6 +80,9 @@ def makeInvoice(appointment):
 
 	except Exception as e:
 		return generateResponse("F",error=e)'''
+
+
+
 
 
 

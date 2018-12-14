@@ -135,7 +135,7 @@ frappe.ui.form.on('Patient Appointment', {
 
 			//custom:change button color and tooltip using css attribute
 			data.appointments.map(slot => {
-				if(slot.status == "Scheduled" || slot.status == "Open" || slot.status == "Closed"){
+				if(slot.status == "Scheduled" || slot.status == "Open" || slot.status == "Closed" || slot.status == "To Bill" || slot.status == "Billed" || slot.status == "Under Treatment"){
 					$wrapper
 						.find(`button[data-name="${slot.appointment_time}"]`)
 						.attr('title','Booked')
