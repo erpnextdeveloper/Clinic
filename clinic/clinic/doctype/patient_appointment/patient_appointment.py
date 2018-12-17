@@ -164,12 +164,14 @@ def confirm_sms(doc):
 
 
 @frappe.whitelist()
-def create_invoice(company, physician, patient, appointment_id, appointment_date):
+def create_invoice(company, physician, patient, appointment_id, appointment_date,item_object):
 	if not appointment_id:
 		return False
 
-	item_obj=getItemArray(company,physician,patient,appointment_id,appointment_date)
-	if len(item_obj)>0:
+	#item_obj=getItemArray(company,physician,patient,appointment_id,appointment_date)
+	
+	if len(item_object)>0:
+		item_obj=getItems(item_object)
 		sales_invoice=frappe.get_doc(dict(
 			doctype="Sales Invoice",
 			customer=patient,
@@ -177,12 +179,63 @@ def create_invoice(company, physician, patient, appointment_id, appointment_date
 			appointment=appointment_id,
 			items=item_obj
 		)).insert()
+		if sales_invoice.name:
+			obj=json.loads(item_object)
+			counter=0
+			while counter<len(obj):
+				if not obj[counter][:2]=='CT':
+					frappe.db.set_value("Consultation",obj[counter],"is_bill",1)
+				else:
+					frappe.db.set_value("Client Treatment",obj[counter],"is_bill",1)
+				counter=counter+1
 		return sales_invoice.name
 	else:
 		return False	
 
+def getItems(item_obj):
+	items=[]
+	counter=0
+	obj=json.loads(item_obj)
+	while counter<len(obj):
+		line_item={}
+		if not obj[counter][:2]=='CT':
+			consult_data=frappe.get_doc("Consultation",obj[counter])
+			line_item["item_code"]=frappe.db.get_value("Healthcare Settings","Healthcare Settings","consultant_item")
+			line_item["qty"]=1
+			op_consulting_charge = frappe.db.get_value("Doctor",consult_data.physician, "op_consulting_charge")
+			cost_center = frappe.db.get_value("Doctor",consult_data.physician, "cost_center")
 
-@frappe.whitelist()
+			if op_consulting_charge:
+				line_item["rate"] = op_consulting_charge
+			if cost_center:
+				line_item["cost_center"]=cost_center
+
+			items.append(line_item)
+
+		else:
+			treatment_data=frappe.get_doc("Client Treatment",obj[counter])
+			line_item["item_code"]=treatment_data.treatment
+			line_item["qty"]=treatment_data.qty
+			cost_center = frappe.db.get_value("Doctor",treatment_data.doctor, "cost_center")
+			if cost_center:
+				line_item["cost_center"]=cost_center
+
+			items.append(line_item)
+		counter=counter+1
+	return items
+
+
+
+	
+		
+
+
+			
+			
+	
+
+
+'''@frappe.whitelist()
 def invoiceItem(name):
 	appointment_details=frappe.get_doc("Patient Appointment",name)
 	items=getItemArray(appointment_details.company,appointment_details.physician,appointment_details.client,name,appointment_details.appointment_date)
@@ -236,7 +289,7 @@ def getItemArray(company, physician, patient, appointment_id, appointment_date):
 	return items
 
 
-
+'''
 def get_fee_validity(physician, patient, date):
 	validity_exist = validity_exists(physician, patient)
 	if validity_exist:

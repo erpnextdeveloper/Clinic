@@ -93,7 +93,8 @@ doc_events = {
 		"after_insert":"clinic.api.checkAvailability"
 	},
 	"Consultation":{
-		"after_submit":"clinic.api.makeTreatment"
+		"after_submit":"clinic.api.makeTreatment",
+		"on_cancel":"clinic.api.updateDocument"
 	},
 	"Sales Invoice":{
 		"on_submit":"clinic.api.changeStatus"

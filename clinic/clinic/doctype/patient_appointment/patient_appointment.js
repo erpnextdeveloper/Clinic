@@ -59,7 +59,86 @@ frappe.ui.form.on('Patient Appointment', {
 			}
 			else if(frm.doc.status != "Cancelled" && frappe.user.has_role("Accounts User")){
 				frm.add_custom_button(__('Invoice'), function() {
-					btn_invoice_consultation(frm);
+					//btn_invoice_consultation(frm);
+	var data='';
+	frappe.call({
+		method:'clinic.api.getItemForInvoice',
+		args:{'appointment':frm.doc.name},
+		freeze: true,
+		freeze_message: "Please Wait...",
+		callback:function(r){
+						
+			if(r.message){
+	
+				data=r.message
+					
+			}
+		}
+
+	})
+
+
+	
+		var fields = [
+			{fieldtype:'HTML', fieldname: 'clinic_item'}
+			];
+
+					var arrayOfValues = [];
+					var d = new frappe.ui.Dialog({
+						title: __('Select Item For Invoice'),
+						fields: fields,
+						primary_action: function() {
+						d.hide();
+						arrayOfValues=[];
+						var tableControl= document.getElementById('clinic');
+
+						$('input:checkbox:checked', tableControl).each(function() {
+							    arrayOfValues.push($(this).closest('tr').find('td:last').text());
+						}).get();
+
+						console.log(arrayOfValues);
+						setTimeout(function(){
+						
+						if(arrayOfValues.length==0){
+							frappe.throw("Select Any One Item")
+					
+						}
+						var doc = frm.doc;
+						frappe.call({
+							method:"clinic.clinic.doctype.patient_appointment.patient_appointment.create_invoice",
+							args: {company: doc.company, physician:doc.physician, patient: doc.client,
+							appointment_id: doc.name, appointment_date:doc.appointment_date,item_object:arrayOfValues},
+							freeze:true,
+							freeze_message:"Please Wait",
+							callback: function(res){
+									if(res.message){
+										frappe.set_route("Form", "Sales Invoice", res.message);
+										}
+								
+								cur_frm.reload_doc();
+								data='';
+
+								}
+							});
+						},700)
+						console.log(arrayOfValues[0]);
+
+						
+						},
+						primary_action_label: __('Update')
+					});
+
+ 				setTimeout(function(){
+				
+				d.fields_dict.clinic_item.$wrapper.html(data);
+				d.clear();
+				d.show();
+				},500);
+
+d.$wrapper.find('.modal-dialog').css("width", "600px");					
+
+
+
 				},__("Create"));
 			}
 		}

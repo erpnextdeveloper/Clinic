@@ -208,7 +208,7 @@ frappe.ui.form.on("Consultation", "appointment", function(frm){
 		});
 	}
 });
-
+/*
 frappe.ui.form.on("Consultation", "physician", function(frm) {
 	if(frm.doc.physician){
 		frappe.call({
@@ -223,6 +223,7 @@ frappe.ui.form.on("Consultation", "physician", function(frm) {
 		});
 	}
 });
+*/
 
 frappe.ui.form.on("Consultation Treatment", "treatment", function(frm,cdt,cdn) {
 	frappe.model.set_value(cdt,cdn,"qty","1");

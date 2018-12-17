@@ -4,6 +4,7 @@
 frappe.listview_settings['Client Treatment'] = {
 	add_fields: ["status"],
 	get_indicator: function(doc) {
+
 		if(doc.status=="Pending"){
 			return [__("Pending"), "darkgrey"];
 		}
@@ -16,6 +17,7 @@ frappe.listview_settings['Client Treatment'] = {
 		if(doc.status=="Completed"){
 			return [__("Completed"), "purple"];
 		}
+
 
 
 	},
