@@ -164,30 +164,56 @@ def confirm_sms(doc):
 
 
 @frappe.whitelist()
-def create_invoice(company, physician, patient, appointment_id, appointment_date,item_object):
+def getItemForInvoice(appointment):
+	consultant_data=frappe.get_all("Consultation",filters=[("Consultation","appointment","=",appointment),("Consultation","is_bill","!=",1)],fields=["name"])
+	items=[]
+	if len(consultant_data)>0:
+		consult=frappe.get_doc("Consultation",consultant_data[0].name)
+		line_item={}
+		line_item["item_code"]=frappe.db.get_value("Healthcare Settings","Healthcare Settings","consultant_item")
+		line_item["qty"]=1
+		line_item["consultation"]=consultant_data[0].name
+		op_consulting_charge = frappe.db.get_value("Doctor",consult.physician, "op_consulting_charge")
+		cost_center = frappe.db.get_value("Doctor",consult.physician, "cost_center")
+		if op_consulting_charge:
+			line_item["rate"] = op_consulting_charge
+		if cost_center:
+			line_item["cost_center"]=cost_center
+		items.append(line_item)
+
+	treatment_data=frappe.get_all("Client Treatment",filters=[("Client Treatment","appointment","=",appointment),("Client Treatment","status","in",["Pending","Completed"]),("Client Treatment","is_bill","!=",1)],fields=["name"])
+	if len(treatment_data)>0:
+		for row in treatment_data:
+			treatment=frappe.get_doc("Client Treatment",row.name)
+			line_item={}
+			line_item["item_code"]=treatment.treatment
+			line_item["qty"]=treatment.qty
+			line_item["treatment"]=row.name
+			cost_center = frappe.db.get_value("Doctor",treatment.doctor, "cost_center")
+			if cost_center:
+				line_item["cost_center"]=cost_center
+
+			items.append(line_item)
+	return items
+
+
+
+
+@frappe.whitelist()
+def create_invoice(company, physician, patient, appointment_id, appointment_date):
 	if not appointment_id:
 		return False
 
 	#item_obj=getItemArray(company,physician,patient,appointment_id,appointment_date)
-	
+	item_object=getItemForInvoice(appointment_id)
 	if len(item_object)>0:
-		item_obj=getItems(item_object)
 		sales_invoice=frappe.get_doc(dict(
 			doctype="Sales Invoice",
 			customer=patient,
 			due_date=getdate(),
 			appointment=appointment_id,
-			items=item_obj
+			items=item_object
 		)).insert()
-		if sales_invoice.name:
-			obj=json.loads(item_object)
-			counter=0
-			while counter<len(obj):
-				if not obj[counter][:2]=='CT':
-					frappe.db.set_value("Consultation",obj[counter],"is_bill",1)
-				else:
-					frappe.db.set_value("Client Treatment",obj[counter],"is_bill",1)
-				counter=counter+1
 		return sales_invoice.name
 	else:
 		return False	

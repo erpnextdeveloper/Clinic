@@ -70,11 +70,9 @@ def checkAvailability(self,method):
 	
 		#frappe.msgprint(json.dumps(checkAppointment))
 		if len(checkAppointment)>1:
-			frappe.msgprint("Old")
 			frappe.db.set_value("Patient Appointment", self.name, "status", "Waiting")
 			return self.name
 		else:
-			frappe.msgprint("New")
 			frappe.db.set_value("Patient Appointment", self.name, "status", "Scheduled")
 			return self.name
 
@@ -84,13 +82,20 @@ def checkAvailability(self,method):
 @frappe.whitelist()
 def changeStatus(self,method):
 	try:
+		for item in self.items:
+			if item.consultation:
+				frappe.db.set_value("Consultation",item.consultation,"is_bill",1)
+			if item.treatment:
+				frappe.db.set_value("Client Treatment",item.treatment,"is_bill",1)
 		if self.appointment:
 			consultant_data=frappe.get_all("Consultation",filters=[("Consultation","appointment","=",self.appointment),("Consultation","is_bill","!=",1)],fields=["name"])
 			treatment_data=frappe.get_all("Client Treatment",filters=[("Client Treatment","appointment","=",self.appointment),("Client Treatment","status","in",["Pending","Completed"]),("Client Treatment","is_bill","!=",1)],fields=["name"])
 			if len(consultant_data)==0 and len(treatment_data)==0:
 				frappe.db.set_value("Patient Appointment",self.appointment, "status", "Billed")
 			else:
-				frappe.db.set_value("Patient Appointment",self.appointment, "status", "To Bill")
+				frappe.db.set_value("Patient Appointment",self.appointment, "status", "Partial Billed")
+
+
 
 	except Exception as e:
 		return generateResponse("F",error=e)
@@ -99,7 +104,6 @@ def changeStatus(self,method):
 @frappe.whitelist()
 def updateDocument(self,method):
 	try:
-		frappe.msgprint("Test")
 		if self.appointment:
 			frappe.db.set_value("Patient Appointment",self.appointment,"status","Closed")
 			treatment_data=frappe.get_all("Client Treatment",filters={'consulatation':self.name},fields=["name"])
@@ -114,7 +118,9 @@ def updateDocument(self,method):
 						tr_doc.cancel()
 	except Exception as e:
 		return generateResponse("F",error=e)
-	
+
+
+
 
 
 '''
@@ -134,10 +140,11 @@ def makeInvoice(appointment):
 			items=items
 		)).insert()
 		return sales_invoice.name
-
 	except Exception as e:
 		return generateResponse("F",error=e)'''
 
+
+#Not Useful
 
 @frappe.whitelist()
 def getItemForInvoice1(appointment):
@@ -172,7 +179,7 @@ def getItemForInvoice1(appointment):
 @frappe.whitelist()
 def getItemForInvoice(appointment):
 	try:
-		data='<h4>Consultation And Treatmenets</h4><table class="table table-bordered" id="clinic"><tr><th>#</th><th>Item Name</th><th>Doctor</th><th>Date</th><th>Name</th></tr>'
+		data='<h4>Consultation and Treatments</h4><table class="table table-bordered" id="clinic"><tr><th>#</th><th>Item</th><th>Doctor</th><th>Date</th><th>Reference</th></tr>'
 		consultant_data=frappe.get_all("Consultation",filters=[("Consultation","appointment","=",appointment),("Consultation","is_bill","!=",1)],fields=["name"])
 		items=[]
 		if len(consultant_data)>0:
@@ -190,20 +197,3 @@ def getItemForInvoice(appointment):
 
 	except Exception as e:
 		return generateResponse("F",error=e)
-				
-				
-		
-
-
-
-
-
-
-
-
-
-
-
-
-		
-	

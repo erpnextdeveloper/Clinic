@@ -17,6 +17,11 @@ frappe.listview_settings['Client Treatment'] = {
 		if(doc.status=="Completed"){
 			return [__("Completed"), "purple"];
 		}
+		if(doc.is_bill){
+			alert();
+
+			return [__("Bill"), "green"];
+		}
 
 
 

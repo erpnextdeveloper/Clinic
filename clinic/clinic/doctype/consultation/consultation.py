@@ -21,6 +21,7 @@ class Consultation(Document):
 		if len(self.treatment)>0:
 			for item in self.treatment:
 				doctor_name=frappe.db.get_value("Doctor",item.assigned_to,"first_name")
+				medical_assistant_name=frappe.db.get_value("Doctor",self.physician,"first_name")
 				doc=frappe.get_doc(dict(
 					doctype="Client Treatment",
 					appointment=self.appointment,
@@ -32,14 +33,16 @@ class Consultation(Document):
 					treatment=item.treatment,
 					qty=item.qty,
 					status="Pending",
-					medical_assitant=self.physician,
+					medical_assistant=self.physician,
+					medical_assistant_name=medical_assistant_name if not medical_assistant_name==None else '',
 					date_time=now_datetime(),
 					consulatation=self.name,
 					consulatation_treatment=item.name
 				)).insert()
 			frappe.db.set_value("Patient Appointment", self.appointment, "status", "Under Treatment")
 		else:
-			frappe.db.set_value("Patient Appointment", self.appointment, "status", "To Bill")
+			if not self.is_bill:
+				frappe.db.set_value("Patient Appointment", self.appointment, "status", "To Bill")
 
 def set_sales_invoice_fields(company, patient):
 	sales_invoice = frappe.new_doc("Sales Invoice")

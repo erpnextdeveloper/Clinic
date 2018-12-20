@@ -26,6 +26,9 @@ frappe.listview_settings['Patient Appointment'] = {
 		if(doc.status=="To Bill"){
 			return [__("To Bill"), "orange", "status,=,To Bill"];
 		}
+		if(doc.status=="Partial Billed"){
+			return [__("Partial Billed"), "orange", "status,=,Partial Billed"];
+		}
 		if(doc.status=="Billed"){
 			return [__("Billed"), "green", "status,=,Billed"];
 		}

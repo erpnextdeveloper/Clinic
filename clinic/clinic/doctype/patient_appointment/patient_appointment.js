@@ -21,7 +21,7 @@ frappe.ui.form.on('Patient Appointment', {
 				frappe.set_route("medical_record");
 			},__("View"));
 		}
-		if(frm.doc.status == "Open"){
+		if(frm.doc.status == "Open" || frm.doc.status == "Waiting" || frm.doc.status == "Schedule"){
 			frm.add_custom_button(__('Cancel'), function() {
 				btn_update_status(frm, "Cancelled");
 			});
@@ -60,54 +60,15 @@ frappe.ui.form.on('Patient Appointment', {
 			else if(frm.doc.status != "Cancelled" && frappe.user.has_role("Accounts User")){
 				frm.add_custom_button(__('Invoice'), function() {
 					//btn_invoice_consultation(frm);
-	var data='';
-	frappe.call({
-		method:'clinic.api.getItemForInvoice',
-		args:{'appointment':frm.doc.name},
-		freeze: true,
-		freeze_message: "Please Wait...",
-		callback:function(r){
-						
-			if(r.message){
-	
-				data=r.message
-					
-			}
-		}
+	//var data=get_data(frm)
 
-	})
-
-
-	
-		var fields = [
-			{fieldtype:'HTML', fieldname: 'clinic_item'}
-			];
-
-					var arrayOfValues = [];
-					var d = new frappe.ui.Dialog({
-						title: __('Select Item For Invoice'),
-						fields: fields,
-						primary_action: function() {
-						d.hide();
-						arrayOfValues=[];
-						var tableControl= document.getElementById('clinic');
-
-						$('input:checkbox:checked', tableControl).each(function() {
-							    arrayOfValues.push($(this).closest('tr').find('td:last').text());
-						}).get();
-
-						console.log(arrayOfValues);
-						setTimeout(function(){
-						
-						if(arrayOfValues.length==0){
-							frappe.throw("Select Any One Item")
-					
-						}
+	//console.log(data)
 						var doc = frm.doc;
+
 						frappe.call({
 							method:"clinic.clinic.doctype.patient_appointment.patient_appointment.create_invoice",
 							args: {company: doc.company, physician:doc.physician, patient: doc.client,
-							appointment_id: doc.name, appointment_date:doc.appointment_date,item_object:arrayOfValues},
+							appointment_id: doc.name, appointment_date:doc.appointment_date},
 							freeze:true,
 							freeze_message:"Please Wait",
 							callback: function(res){
@@ -116,26 +77,13 @@ frappe.ui.form.on('Patient Appointment', {
 										}
 								
 								cur_frm.reload_doc();
-								data='';
 
 								}
 							});
-						},700)
-						console.log(arrayOfValues[0]);
 
-						
-						},
-						primary_action_label: __('Update')
-					});
+	
 
- 				setTimeout(function(){
-				
-				d.fields_dict.clinic_item.$wrapper.html(data);
-				d.clear();
-				d.show();
-				},500);
 
-d.$wrapper.find('.modal-dialog').css("width", "600px");					
 
 
 
@@ -244,7 +192,92 @@ d.$wrapper.find('.modal-dialog').css("width", "600px");
 		}
 	},
 });
+/*
 
+var get_data=function(frm){
+	frappe.call({
+		method:'clinic.api.getItemForInvoice',
+		args:{'appointment':frm.doc.name},
+		freeze: true,
+		freeze_message: "Please Wait...",
+		callback:function(r){
+						
+			if(r.message){
+				console.log(r.message)
+				get_popup(frm,r.message)
+				
+					
+			}
+		}
+
+	})
+
+
+
+
+};
+
+var get_popup=function(frm,data){
+		var fields = [
+			{fieldtype:'HTML', fieldname: 'clinic_item'}
+			];
+
+					
+					var d = new frappe.ui.Dialog({
+						title: __('Select Item for Invoice'),
+						fields: fields,
+						primary_action: function() {
+						d.hide();
+						
+						var tableCont= document.getElementById('clinic');
+
+						var arrVal=get_selected_item(frm,tableCont)
+
+						console.log(arrVal);
+						setTimeout(function(){
+						
+						if(arrVal.length==0){
+							frappe.throw("Select Any One Item")
+					
+						}
+						var doc = frm.doc;
+
+						},700)
+						d.refresh();
+						d.clear();
+						console.log(arrVal[0]);
+
+						
+						},
+						primary_action_label: __('Select')
+					});
+
+
+				
+				d.fields_dict.clinic_item.$wrapper.html(data);
+				d.refresh();
+				d.show();
+				
+
+d.$wrapper.find('.modal-dialog').css("width", "600px");	
+
+
+
+
+};
+*/
+
+var get_selected_item=function(frm,tableControl){
+		console.log(tableControl)
+		var arrayOfValues = [];
+		$('input:checkbox:checked', tableControl).each(function() {
+			arrayOfValues.push($(this).closest('tr').find('td:last').text());
+		}).get();
+		return arrayOfValues
+
+
+
+};
 var btn_create_consultation = function(frm){
 	var doc = frm.doc;
 	frappe.call({
